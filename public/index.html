@@ -3,21 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Chat App</title>
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="stylesheet" href="/css/styles.min.css" />
   </head>
   <body>
-    Chat App
-    <div id="messages"></div>
+    <div class="chat">
+      <div class="chat__sidebar"></div>
 
-    <form id="message-form">
-      <input type="text" placeholder="Message" name="message" />
-      <button>Send</button>
-    </form>
+      <div class="chat__main">
+        <div id="messages" class="chat__messages"></div>
 
-    <button id="send-location">Send location</button>
+        <div class="compose">
+          <form id="message-form">
+            <input type="text" placeholder="Message" name="message" />
+            <button>Send</button>
+          </form>
+
+          <button id="send-location">Send location</button>
+        </div>
+      </div>
+    </div>
+
     <script id="message-template" type="text/html">
-      <div>
+      <div class="message">
+
+        <p>
+          <span class="message__name">Some User Name</span>
+          <span class="message__meta">{{createAt}}</span>
+
+        </p>
         <p>{{message}}</p>
+      </div>
+    </script>
+
+    <script id="location-message-template" type="text/html">
+      <div>
+        <p>
+          {{createAt}} -
+          <a href="{{url}}" target="_blank">My current location</a>
+        </p>
       </div>
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/3.0.1/mustache.min.js"></script>
