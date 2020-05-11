@@ -4,7 +4,12 @@ const express = require("express");
 const socketio = require("socket.io");
 
 const { generateMessage, generateLocationMessage } = require("./utils/message");
-
+const {
+  addUser,
+  removeUser,
+  getUser,
+  getUsersinRoom,
+} = require("./utils/users");
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
@@ -15,26 +20,46 @@ const publicDirectory = path.join(__dirname, "../public");
 app.use(express.static(publicDirectory));
 
 io.on("connection", (socket) => {
-  socket.on("join", ({ username, room }) => {
+  socket.on("join", ({ username, room }, callback) => {
+    const { error, user } = addUser({
+      id: socket.id,
+      userName: username,
+      room,
+    });
+
+    if (error) {
+      return callback(error);
+    }
+
     socket.join(room);
-    socket.emit("message", generateMessage("Welcome"));
+    socket.emit("message", generateMessage("Admin", "Welcome"));
     socket.broadcast
       .to(room)
-      .emit("message", generateMessage(`${username} has joined`));
+      .emit("message", generateMessage("Admin", `${username} has joined`));
+    callback();
   });
 
   socket.on("sendMessage", (message, callback) => {
-    io.to("Center City").emit("message", generateMessage(message));
+    const user = getUser(socket.id);
+    io.to(user.room).emit("message", generateMessage(user.userName, message));
     callback();
   });
   socket.on("disconnect", () => {
-    io.emit("message", generateMessage("A user has Left"));
+    const user = removeUser(socket.id);
+    if (user) {
+      io.to(user.room).emit(
+        "message",
+        generateMessage("Admin", `${user.userName} has Left`)
+      );
+    }
   });
 
   socket.on("sendLocation", (coords, callback) => {
-    socket.broadcast.emit(
+    const user = getUser(socket.id);
+    io.to(user.room).emit(
       "locationMessage",
       generateLocationMessage(
+        user.userName,
         `https://google.com/maps?q=${coords.latitude},${coords.longitude}`
       )
     );
